@@ -1,4 +1,4 @@
-import {isLeapYear} from '../src/app.js'
+import {isLeapYear} from '../src/leap-year.js'
 
 it('should be divisible by 4', () => {
     expect(isLeapYear(12)).toBe(true)
