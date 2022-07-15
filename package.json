@@ -1,0 +1,10 @@
+{
+  "name": "first-kata-session",
+  "version": "1.0.0",
+  "main": "app.js",
+  "author": "Robin Schlenker",
+  "license": "MIT",
+  "dependencies": {
+    "ramda": "^0.28.0"
+  }
+}
