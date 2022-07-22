@@ -5,19 +5,54 @@ export const player = () => {
 	return {
 		health: 100,
 		level: 1,
+		factions: [],
 	}
 }
 export const alive = R.pipe(R.prop('health'), R.gt(R.__, 0))
+const dead = complement(alive)
 
 export const dealDamage = R.curry((playerA, playerB, damage) => {
 	const actualDamage = damage * getDamageModifier(playerA, playerB)
 	return R.unless(R.identical(playerA), subtractDamage(actualDamage))(playerB)
 })
 
-export const heal = R.curry((healedPlayer, amount) => {
+export const heal = R.curry((healingPlayer, healedPlayer, amount) => {
 	const limit = healedPlayer.level < 5 ? 1000 : 1500
-	return R.unless(complement(alive), addHealth(amount, limit))(healedPlayer)
+	return R.unless(
+		R.either(dead, isEnemy(healingPlayer)),
+		addHealth(amount, limit)
+	)(healedPlayer)
 })
+
+export const selfHeal = R.curry((player, amount) =>
+	heal(player, player, amount)
+)
+
+export const join = R.curry((factionName, player) => {
+	return R.evolve(
+		{
+			factions: R.append(factionName),
+		},
+		player
+	)
+})
+
+export const leave = R.curry((factionName, player) => {
+	return R.evolve(
+		{
+			factions: R.reject(R.equals(factionName)),
+		},
+		player
+	)
+})
+
+export const isAlly = R.curry((player1, player2) => {
+	return R.or(
+		R.intersection(player1.factions, player2.factions).length > 0,
+		R.identical(player1, player2)
+	)
+})
+export const isEnemy = R.complement(isAlly)
 
 export const setLevel = (player, level) => {
 	return R.assoc('level', level, player)
@@ -39,6 +74,9 @@ export const addUntil = R.curry((a, b, limit) => {
 })
 
 export const getDamageModifier = (attacker, defender) => {
+	if (isAlly(attacker, defender)) {
+		return 0
+	}
 	return R.pipe(
 		R.prop('level'),
 		R.subtract(defender.level),
